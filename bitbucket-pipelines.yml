@@ -1,0 +1,33 @@
+image: node:16-alpine
+definitions:
+  steps:
+    - step: &checks
+        name: "lint"
+        caches:
+          - node
+        script:
+          - npm install
+          - npm run lint
+    - step: &tests
+        name: "unit tests"
+        caches:
+          - node
+        script:
+          - npm install
+          - npm run test
+pipelines:
+  default:
+    - step: *tests
+
+  pull-requests:
+    '**':
+      - step: *checks
+
+  tags:
+    v*:
+      - step: *tests
+
+  branches:
+    main:
+      - step: *checks
+      - step: *tests

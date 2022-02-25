@@ -4,7 +4,6 @@ import createError, { HttpError } from 'http-errors';
 import indexRouter from './routes';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -25,9 +24,4 @@ app.use((err: HttpError, req: Request, res: Response, _: NextFunction) => {
   res.send(`error ${err.status}: ${err.message}`);
 });
 
-app.listen(PORT, () => {
-  /* eslint-disable-next-line no-console */
-  return console.log(
-    `The application is listening at http://localhost:${PORT}`
-  );
-});
+export default app;

@@ -3,7 +3,9 @@ import express from 'express';
 const router = express.Router();
 
 router.get('/schools', (_, res) => {
-  res.send('Onboarding schools!');
+  res.json({
+    message: 'Onboarding schools!',
+  });
 });
 
 export default router;
