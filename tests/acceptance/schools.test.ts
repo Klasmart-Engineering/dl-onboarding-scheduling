@@ -14,7 +14,6 @@ use(chaiAsPromised);
 const envConfig = dotenv.parse(
   fs.readFileSync(path.resolve(__dirname, '../../.env.test'))
 );
-
 for (const k in envConfig) {
   process.env[k] = envConfig[k];
 }
