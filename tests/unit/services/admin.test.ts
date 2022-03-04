@@ -1,22 +1,12 @@
-import fs from 'fs';
-import path from 'path';
-
 import chai, { expect } from 'chai';
 import spies from 'chai-spies';
-import dotenv from 'dotenv';
+import { config } from 'dotenv';
 
 import { AdminService } from '../../../src/services';
 import { adminServiceServer } from '../../mocks/adminServiceServer';
 
+config();
 chai.use(spies);
-
-// Override environment variables
-const envConfig = dotenv.parse(
-  fs.readFileSync(path.resolve(__dirname, '../../../.env.test'))
-);
-for (const k in envConfig) {
-  process.env[k] = envConfig[k];
-}
 
 describe('AdminService', () => {
   // Establish API mocking before all tests.

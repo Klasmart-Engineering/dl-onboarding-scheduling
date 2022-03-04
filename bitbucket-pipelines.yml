@@ -7,7 +7,7 @@ definitions:
           - node
         script:
           - npm install
-          - npm run lint
+          - npm run test:lint
     - step: &tests
         name: "unit tests"
         caches:

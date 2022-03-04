@@ -1,5 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import createError, { HttpError } from 'http-errors';
+import multer from 'multer';
 
 import indexRouter from './routes';
 
@@ -20,8 +21,19 @@ app.use((err: HttpError, req: Request, res: Response, _: NextFunction) => {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  res.status(err.status || 500);
-  res.send(`error ${err.status}: ${err.message}`);
+  let status = 500;
+  switch (err.constructor) {
+    case multer.MulterError:
+      status = 400;
+      break;
+
+    default:
+      break;
+  }
+  if (err.status) status = err.status;
+
+  res.status(status);
+  res.json({ message: err.message });
 });
 
 export default app;
