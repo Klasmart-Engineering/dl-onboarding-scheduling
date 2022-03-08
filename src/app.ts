@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import createError, { HttpError } from 'http-errors';
 import multer from 'multer';
 
+import { checkAPISecret } from './middlewares/checkAPISecret';
 import indexRouter from './routes';
 
 const app = express();
@@ -9,7 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/', indexRouter);
+app.use('/', checkAPISecret, indexRouter);
 
 // catch 404 and forward to error handler
 app.use((_: Request, __: Response, next: NextFunction) => {

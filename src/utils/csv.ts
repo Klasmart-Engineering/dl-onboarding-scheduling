@@ -3,13 +3,15 @@ import fs from 'fs';
 import { parse } from 'csv-parse/sync';
 import { stringify } from 'csv-stringify';
 
+import { onboarding } from './onboarding';
+
 /**
  * This process runs in background so that we will not:
  *
  * - return result
  * - throw errors to express
  */
-export const processCsv = (filePath: string, outputFile: string) => {
+export const processCsv = async (filePath: string, outputFile: string) => {
   const rows = parseCsv(filePath, outputFile);
 
   if (rows === undefined) {
@@ -24,7 +26,9 @@ export const processCsv = (filePath: string, outputFile: string) => {
   }
 
   // TODO: split to smaller files then send them to Admin Service
-  // console.log(rows);
+  await onboarding(filePath, outputFile);
+
+  return rows;
 };
 
 export const parseCsv = (
@@ -44,7 +48,8 @@ export const parseCsv = (
 
 export const writeResultToCsv = (
   outputFile: string,
-  data: Record<string, string>[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>[]
 ) => {
   const config = { header: true };
   if (fs.existsSync(outputFile)) {

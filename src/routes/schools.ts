@@ -1,7 +1,10 @@
+import path from 'path';
+
 import express from 'express';
 
+import { OUTPUT_DIR, UPLOAD_DIR } from '../config';
 import upload from '../middlewares/upload';
-import { onboarding } from '../utils';
+import { processCsv } from '../utils/csv';
 
 const router = express.Router();
 
@@ -14,7 +17,10 @@ router.post('/schools', upload.single('file'), async (req, res) => {
     });
   }
 
-  onboarding('schools');
+  await processCsv(
+    path.resolve(UPLOAD_DIR, 'schools.csv'),
+    path.resolve(OUTPUT_DIR, 'schools.csv')
+  );
 
   return res.json({
     message: 'success',
