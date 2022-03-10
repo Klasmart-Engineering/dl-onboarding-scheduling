@@ -4,11 +4,11 @@ import path from 'path';
 import { expect } from 'chai';
 
 import { OUTPUT_DIR } from '../../../src/config';
-import { parseCsv, processCsv, writeResultToCsv } from '../../../src/utils/csv';
+import { parseCsv, processCsv, writeToCsv } from '../../../src/utils/csv';
 
 // TODO: got some problems with fs sync methods, will fix later
 xdescribe('utils/csv', () => {
-  describe('#writeResultToCsv', () => {
+  describe('#writeToCsv', () => {
     const resultCsvFilePath = `${OUTPUT_DIR}/result.csv`;
     const testResultCsvFilePath = `${OUTPUT_DIR}/resultTest.csv`;
 
@@ -21,7 +21,7 @@ xdescribe('utils/csv', () => {
 
     it('writes the result to the new file', () => {
       expect(fs.existsSync(resultCsvFilePath)).to.be.false;
-      writeResultToCsv(resultCsvFilePath, [{ test: 'test' }]);
+      writeToCsv(resultCsvFilePath, [{ test: 'test' }]);
 
       const records = parseCsv(resultCsvFilePath, testResultCsvFilePath);
       expect(records).to.not.be.undefined;
@@ -33,9 +33,9 @@ xdescribe('utils/csv', () => {
     });
 
     it('appends the new result (without header) to the existing file', () => {
-      writeResultToCsv(resultCsvFilePath, [{ test: 'test' }]);
+      writeToCsv(resultCsvFilePath, [{ test: 'test' }]);
 
-      writeResultToCsv(resultCsvFilePath, [{ test: 'test' }]);
+      writeToCsv(resultCsvFilePath, [{ test: 'test' }]);
       const records = parseCsv(resultCsvFilePath, testResultCsvFilePath);
       expect(records).to.not.be.undefined;
       if (records !== undefined) {

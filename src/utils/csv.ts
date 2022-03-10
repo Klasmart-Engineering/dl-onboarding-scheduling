@@ -1,8 +1,13 @@
 import fs from 'fs';
+import path from 'path';
 
+import { Options } from 'csv-parse';
 import { parse } from 'csv-parse/sync';
-import { stringify } from 'csv-stringify';
+import { stringify } from 'csv-stringify/sync';
 
+import { UPLOAD_DIR } from '../config';
+
+import { chunk } from './array';
 import { onboarding } from './onboarding';
 
 /**
@@ -12,6 +17,10 @@ import { onboarding } from './onboarding';
  * - throw errors to express
  */
 export const processCsv = async (filePath: string, outputFile: string) => {
+  const maxEntitiesPerFile = process.env.MAX_ENTITIES_PER_FILE
+    ? parseInt(process.env.MAX_ENTITIES_PER_FILE, 10)
+    : 100;
+  const fileName = filePath.replace(/^.*[\\\/]/, ''); // handle both \ OR / in paths
   const rows = parseCsv(filePath, outputFile);
 
   if (rows === undefined) {
@@ -21,32 +30,53 @@ export const processCsv = async (filePath: string, outputFile: string) => {
 
   if (!rows.length) {
     fs.unlinkSync(filePath);
-    writeResultToCsv(outputFile, [{ message: 'File is empty.' }]);
+    writeToCsv(outputFile, [{ message: 'File is empty.' }]);
     return;
   }
+  fs.unlinkSync(filePath); // delete user uploaded file after parsing
 
-  // TODO: split to smaller files then send them to Admin Service
-  await onboarding(filePath, outputFile);
+  // Split CSV file into smaller ones then onboarding via Admin Service
+  const chunks = chunk(rows, maxEntitiesPerFile);
+  let firstRow = 0;
+  let lastRow = 0;
+  for (const [_index, data] of chunks.entries()) {
+    firstRow = lastRow + 1;
+    lastRow += data.length;
+    const onboardFilePath = path.resolve(UPLOAD_DIR, 'onboarding/', fileName);
+    writeToCsv(onboardFilePath, data);
+    await onboarding(
+      onboardFilePath,
+      outputFile,
+      fileName,
+      `${firstRow} - ${lastRow}`
+    );
+  }
 
   return rows;
 };
 
 export const parseCsv = (
   filePath: string,
-  outputFile: string
-): Record<string, string>[] | undefined => {
-  if (!fs.existsSync(filePath)) {
-    writeResultToCsv(outputFile, [{ message: 'File does not exist.' }]);
+  outputFile?: string,
+  options?: Options
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Record<string, any>[] | undefined => {
+  if (!fs.existsSync(filePath) && outputFile) {
+    writeToCsv(outputFile, [{ message: 'File does not exist.' }]);
     return undefined;
   }
-
-  return parse(fs.readFileSync(filePath, 'utf8'), {
+  let config = {
     delimiter: ',',
     columns: true,
-  });
+  };
+  if (options) {
+    config = { ...options, ...config };
+  }
+
+  return parse(fs.readFileSync(filePath, 'utf8'), config);
 };
 
-export const writeResultToCsv = (
+export const writeToCsv = (
   outputFile: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any>[]
@@ -56,11 +86,10 @@ export const writeResultToCsv = (
     config.header = false;
   }
 
-  stringify(data, config, (_error, output) => {
-    if (fs.existsSync(outputFile)) {
-      fs.appendFileSync(outputFile, output);
-    } else {
-      fs.writeFileSync(outputFile, output);
-    }
-  });
+  const output = stringify(data, config);
+  if (fs.existsSync(outputFile)) {
+    fs.appendFileSync(outputFile, output);
+  } else {
+    fs.writeFileSync(outputFile, output);
+  }
 };
