@@ -7,10 +7,23 @@ import indexRouter from './routes';
 
 const app = express();
 
+type MiddlewareFunction = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => void;
+const unless = (middleware: MiddlewareFunction, ...paths: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const pathCheck = paths.some((path) => path === req.path);
+    pathCheck ? next() : middleware(req, res, next);
+  };
+};
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/', checkAPISecret, indexRouter);
+app.use(unless(checkAPISecret, '/ping'));
+app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
 app.use((_: Request, __: Response, next: NextFunction) => {
