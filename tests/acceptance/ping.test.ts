@@ -13,7 +13,7 @@ describe('GET /ping', async () => {
     // something here
   });
 
-  it('returns 200 even if X_API_SECRET is empty', async () => {
+  it('returns 200 even if X-API-SECRET is empty', async () => {
     const res = await requestWithSupertest.get('/ping').send();
 
     expect(res.status).to.eq(200);

@@ -6,7 +6,7 @@ export const checkAPISecret = (
   _: Response,
   next: NextFunction
 ) => {
-  const apiSecret = req.get('X_API_SECRET');
+  const apiSecret = req.get('X-API-SECRET');
 
   if (apiSecret !== process.env.API_SECRET) {
     throw createError(401, { message: 'Unauthorized.' });

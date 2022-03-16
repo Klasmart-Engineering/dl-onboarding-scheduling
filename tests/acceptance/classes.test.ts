@@ -14,7 +14,7 @@ describe('POST /classes', () => {
   });
 
   describe('returns 401', () => {
-    it('returns 401 error if X_API_SECRET is empty', async () => {
+    it('returns 401 error if X-API-SECRET is empty', async () => {
       const res = await requestWithSupertest
         .post('/classes')
         .attach('file', 'tests/fixtures/example.csv');
@@ -22,10 +22,10 @@ describe('POST /classes', () => {
       expect(res.status).to.eq(401);
     });
 
-    it('returns 401 error if X_API_SECRET is invalid', async () => {
+    it('returns 401 error if X-API-SECRET is invalid', async () => {
       const res = await requestWithSupertest
         .post('/classes')
-        .set('X_API_SECRET', 'invalid')
+        .set('X-API-SECRET', 'invalid')
         .attach('file', 'tests/fixtures/example.csv');
 
       expect(res.status).to.eq(401);
@@ -36,7 +36,7 @@ describe('POST /classes', () => {
     it('when the file is missing', async () => {
       const res = await requestWithSupertest
         .post('/classes')
-        .set('X_API_SECRET', process.env.API_SECRET || 'API_SECRET')
+        .set('X-API-SECRET', process.env.API_SECRET || 'API_SECRET')
         .send();
 
       expect(res.status).to.eq(400);
@@ -46,7 +46,7 @@ describe('POST /classes', () => {
     it('when the file is not CSV', async () => {
       const res = await requestWithSupertest
         .post('/classes')
-        .set('X_API_SECRET', process.env.API_SECRET || 'API_SECRET')
+        .set('X-API-SECRET', process.env.API_SECRET || 'API_SECRET')
         .attach('file', 'tests/fixtures/example.txt');
 
       expect(res.status).to.eq(400);

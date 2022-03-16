@@ -17,7 +17,7 @@ describe('POST /schools', () => {
   });
 
   describe('returns 401', () => {
-    it('returns 401 error if X_API_SECRET is empty', async () => {
+    it('returns 401 error if X-API-SECRET is empty', async () => {
       const res = await requestWithSupertest
         .post('/schools')
         .attach('file', 'tests/fixtures/example.csv');
@@ -25,10 +25,10 @@ describe('POST /schools', () => {
       expect(res.status).to.eq(401);
     });
 
-    it('returns 401 error if X_API_SECRET is invalid', async () => {
+    it('returns 401 error if X-API-SECRET is invalid', async () => {
       const res = await requestWithSupertest
         .post('/schools')
-        .set('X_API_SECRET', 'invalid')
+        .set('X-API-SECRET', 'invalid')
         .attach('file', 'tests/fixtures/example.csv');
 
       expect(res.status).to.eq(401);
@@ -39,7 +39,7 @@ describe('POST /schools', () => {
     it('when the file is missing', async () => {
       const res = await requestWithSupertest
         .post('/schools')
-        .set('X_API_SECRET', process.env.API_SECRET || 'API_SECRET')
+        .set('X-API-SECRET', process.env.API_SECRET || 'API_SECRET')
         .send();
 
       expect(res.status).to.eq(400);
@@ -49,7 +49,7 @@ describe('POST /schools', () => {
     it('when the file is not CSV', async () => {
       const res = await requestWithSupertest
         .post('/schools')
-        .set('X_API_SECRET', process.env.API_SECRET || 'API_SECRET')
+        .set('X-API-SECRET', process.env.API_SECRET || 'API_SECRET')
         .attach('file', 'tests/fixtures/example.txt');
 
       expect(res.status).to.eq(400);
@@ -60,13 +60,13 @@ describe('POST /schools', () => {
       // This will upload the file successfully
       await requestWithSupertest
         .post('/schools')
-        .set('X_API_SECRET', process.env.API_SECRET || 'API_SECRET')
+        .set('X-API-SECRET', process.env.API_SECRET || 'API_SECRET')
         .attach('file', 'tests/fixtures/example.csv');
 
       const filePath = UPLOAD_DIR + '/schools.csv';
       const res = await requestWithSupertest
         .post('/schools')
-        .set('X_API_SECRET', process.env.API_SECRET || 'API_SECRET')
+        .set('X-API-SECRET', process.env.API_SECRET || 'API_SECRET')
         .attach('file', 'tests/fixtures/example.csv');
 
       expect(res.status).to.eq(400);
@@ -79,7 +79,7 @@ describe('POST /schools', () => {
     xit('when the file size is exceeded', async () => {
       const res = await requestWithSupertest
         .post('/schools')
-        .set('X_API_SECRET', process.env.API_SECRET || 'API_SECRET')
+        .set('X-API-SECRET', process.env.API_SECRET || 'API_SECRET')
         .attach('file', 'tests/fixtures/fileSizeExceeded.csv');
 
       expect(res.status).to.eq(400);
@@ -93,7 +93,7 @@ describe('POST /schools', () => {
       const outputFilePath = OUTPUT_DIR + '/schools.csv';
       const res = await requestWithSupertest
         .post('/schools')
-        .set('X_API_SECRET', process.env.API_SECRET || 'API_SECRET')
+        .set('X-API-SECRET', process.env.API_SECRET || 'API_SECRET')
         .attach('file', 'tests/fixtures/empty.csv');
 
       expect(res.status).to.eq(200);
@@ -108,7 +108,7 @@ describe('POST /schools', () => {
     const filePath = UPLOAD_DIR + '/schools.csv';
     const res = await requestWithSupertest
       .post('/schools')
-      .set('X_API_SECRET', process.env.API_SECRET || 'API_SECRET')
+      .set('X-API-SECRET', process.env.API_SECRET || 'API_SECRET')
       .attach('file', 'tests/fixtures/example.csv');
 
     expect(res.status).to.eq(200);
