@@ -2,6 +2,7 @@ import {
   ApolloClient,
   DocumentNode,
   from,
+  gql,
   HttpLink,
   InMemoryCache,
   NormalizedCacheObject,
@@ -12,11 +13,14 @@ import { RetryLink } from '@apollo/client/link/retry';
 import fetch from 'cross-fetch';
 
 import { Entity } from '../../types';
-import { Uuid } from '../../utils';
+import { stringInject, Uuid } from '../../utils';
 
-import { GET_ORGANIZATION } from './organization';
+import { GET_CLASSES } from './class';
+import { GET_ORGANIZATION, GET_ORGANIZATIONS } from './organization';
 
-type SupportedConnections = 'classesConnection' | 'organizationsConnection';
+type SupportedConnections =
+  | 'classesConnection'
+  | 'organizationsConnection';
 
 export type IdNameMapper = {
   id: Uuid;
@@ -127,6 +131,89 @@ export class AdminService {
       );
     if (org.length === 0) throw new Error(`Organization ${orgName} not found`);
     return org[0];
+  }
+
+  public async getOrganizations(names: string[]): Promise<IdNameMapper[]> {
+    const transformer = ({ id, name }: { id: string; name: string }) => ({
+      id,
+      name,
+    });
+
+    const conditions = this.buildNameConditions(names);
+    const query = stringInject(GET_ORGANIZATIONS, {
+      nameConditions: conditions,
+    });
+    if (query === undefined) {
+      throw new Error(`Cannot prepare Admin Service organizations query`);
+    }
+
+    const organizations = await this.traversePaginatedQuery(
+      gql(query),
+      transformer,
+      'organizationsConnection'
+    );
+    if (organizations.length === 0) throw new Error(`Organizations not found`);
+
+    return organizations;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public async getClasses(names: string[]): Promise<any> {
+    const transformer = ({
+      id,
+      name,
+      studentsConnection,
+      teachersConnection,
+    }: {
+      id: string;
+      name: string;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      studentsConnection: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      teachersConnection: any;
+    }) => {
+      const studentIds = studentsConnection.edges.map(
+        (student: { node: Record<string, string> }) => student.node.id
+      );
+      const teacherIds = teachersConnection.edges.map(
+        (teacher: { node: Record<string, string> }) => teacher.node.id
+      );
+      return {
+        id,
+        name,
+        studentIds,
+        teacherIds,
+      };
+    };
+
+    const conditions = this.buildNameConditions(names);
+    const query = stringInject(GET_CLASSES, { nameConditions: conditions });
+    if (query === undefined) {
+      throw new Error(`Cannot prepare Admin Service classes query`);
+    }
+
+    const classes = await this.traversePaginatedQuery(
+      gql(query),
+      transformer,
+      'classesConnection'
+    );
+    if (classes.length === 0) throw new Error(`Classes not found`);
+
+    return classes;
+  }
+
+  private buildNameConditions(names: string[]): string {
+    let conditions: string;
+    if (names.length === 0) throw new Error(`Names is missing`);
+    if (names.length === 1)
+      conditions = `name: { operator: eq, value: "${names[0]}" }`;
+
+    conditions =
+      'OR: [' +
+      names.map((name) => `{ name: { operator: eq, value: "${name}" } }`) +
+      ']';
+
+    return conditions;
   }
 
   /**

@@ -28,3 +28,30 @@ export const GET_ORGANIZATION = gql`
     }
   }
 `;
+
+export const GET_ORGANIZATIONS = `
+  query getOrganizations($count: PageSize, $cursor: String) {
+    organizationsConnection(
+      direction: FORWARD
+      directionArgs: { count: $count, cursor: $cursor }
+      filter: {
+        status: { operator: eq, value: "active" }
+        {nameConditions}
+      }
+    ) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
