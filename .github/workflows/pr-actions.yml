@@ -1,0 +1,43 @@
+name: Pipeline for PRs
+
+env:
+  MAX_SIZE_UPLOAD: 5000
+  ADMIN_SERVICE_URL: http://localhost:8080/user
+  API_SECRET: abcxyz
+  STS_JWT: abc123
+
+on:
+  push:
+    branches-ignore:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+  pull_request_target:
+
+  # Allows you to run this workflow manually
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 17
+          registry-url: https://npm.pkg.github.com/
+      - name: "Install NPM dependencies"
+        run: npm ci
+      - name: "Check PR title format"
+        uses: aslafy-z/conventional-pr-title-action@master
+        with:
+          success-state: Title follows the specification.
+          failure-state: Title does not follow the specification.
+          context-name: conventional-pr-title
+          preset: conventional-changelog-angular@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

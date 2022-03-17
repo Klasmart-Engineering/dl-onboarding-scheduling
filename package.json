@@ -1,6 +1,6 @@
 {
   "name": "dutch-lady-onboarding-scheduling",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Dutch Lady onboarding & bulk scheduling",
   "main": "dist/app.js",
   "repository": {
