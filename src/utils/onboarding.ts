@@ -8,7 +8,12 @@ import { UPLOAD_SCHOOLS } from '../services/admin/school';
 import { UPLOAD_USERS } from '../services/admin/user';
 import { writeToCsv } from '../utils/csv';
 
-export async function onboarding(filePath: string, outputFile: string, fileName: string, rows: string) {
+export async function onboarding(
+  filePath: string,
+  outputFile: string,
+  fileName: string,
+  rows: string
+) {
   const result = await uploadCsv(filePath, fileName);
 
   const onboardingResult = [
@@ -21,7 +26,10 @@ export async function onboarding(filePath: string, outputFile: string, fileName:
   ];
   if (result.data.errors) {
     onboardingResult[0].result = 'false';
-    onboardingResult[0].errors = result.data.errors[0].details;
+    onboardingResult[0].errors = result.data.errors[0].details.map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (err: any) => err.message
+    );
   }
   writeToCsv(outputFile, onboardingResult);
   fs.unlinkSync(filePath); // delete file after uploading to Admin Service
