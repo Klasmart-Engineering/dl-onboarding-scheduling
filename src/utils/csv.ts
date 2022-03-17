@@ -40,6 +40,7 @@ export const processCsv = async (filePath: string, outputFile: string) => {
   let firstRow = 0;
   let lastRow = 0;
   for (const [_index, data] of chunks.entries()) {
+    const startAt = Date.now();
     firstRow = lastRow + 1;
     lastRow += data.length;
     const onboardFilePath = path.resolve(UPLOAD_DIR, 'onboarding/', fileName);
@@ -48,7 +49,8 @@ export const processCsv = async (filePath: string, outputFile: string) => {
       onboardFilePath,
       outputFile,
       fileName,
-      `${firstRow} - ${lastRow}`
+      `${firstRow} - ${lastRow}`,
+      startAt,
     );
   }
 

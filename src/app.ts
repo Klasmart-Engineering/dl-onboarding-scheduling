@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from 'express';
 import createError, { HttpError } from 'http-errors';
 import multer from 'multer';
+import responseTime from 'response-time';
 
 import { checkAPISecret } from './middlewares/checkAPISecret';
 import indexRouter from './routes';
@@ -21,6 +22,7 @@ const unless = (middleware: MiddlewareFunction, ...paths: string[]) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(responseTime());
 
 app.use(unless(checkAPISecret, '/ping'));
 app.use('/', indexRouter);

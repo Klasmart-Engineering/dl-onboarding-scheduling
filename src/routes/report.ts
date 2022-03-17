@@ -21,8 +21,12 @@ router.get('/report', async (req, res, next) => {
   try {
     const rows = parseCsv(outputFilePath, '', {
       cast: (value, context) => {
-        if (context.column === 'end_at') {
+        if (context.column === 'start_at') {
           return new Date(parseInt(value)).toUTCString();
+        } else if (context.column === 'end_at') {
+          return new Date(parseInt(value)).toUTCString();
+        } else if (context.column === 'duration_in_second') {
+          return parseInt(value) / 1000; // convert from milliseconds -> seconds
         } else if (context.column === 'errors') {
           return JSON.parse(value);
         } else {

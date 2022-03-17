@@ -12,16 +12,20 @@ export async function onboarding(
   filePath: string,
   outputFile: string,
   fileName: string,
-  rows: string
+  rows: string,
+  startAt: number
 ) {
   const result = await uploadCsv(filePath, fileName);
 
+  const endAt = Date.now();
   const onboardingResult = [
     {
       rows: rows,
       result: 'true',
       errors: [],
-      end_at: Date.now(),
+      start_at: startAt,
+      end_at: endAt,
+      duration_in_second: endAt - startAt,
     },
   ];
   if (result.data.errors) {
