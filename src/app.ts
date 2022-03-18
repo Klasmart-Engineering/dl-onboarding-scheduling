@@ -1,3 +1,4 @@
+import timeout from 'connect-timeout';
 import express, { NextFunction, Request, Response } from 'express';
 import createError, { HttpError } from 'http-errors';
 import multer from 'multer';
@@ -20,11 +21,17 @@ const unless = (middleware: MiddlewareFunction, ...paths: string[]) => {
   };
 };
 
+function haltOnTimedout(req: Request, _: Response, next: NextFunction) {
+  if (!req.timedout) next();
+}
+
+app.use(timeout('300s')); // default node server timeout is 120s
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(responseTime());
-
 app.use(unless(checkAPISecret, '/ping'));
+app.use(haltOnTimedout);
+
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
