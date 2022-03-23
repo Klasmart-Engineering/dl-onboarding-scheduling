@@ -61,6 +61,9 @@ const getOutputFilePath = (type: string): string => {
     case 'classes':
       outputFilePath = path.resolve(OUTPUT_DIR, 'classes.csv');
       break;
+    case 'schedules':
+      outputFilePath = path.resolve(OUTPUT_DIR, 'schedules.csv');
+      break;
     default:
       outputFilePath = path.resolve(OUTPUT_DIR, 'users.csv');
       break;
