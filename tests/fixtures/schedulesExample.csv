@@ -1,0 +1,4 @@
+organization_name,class_name,class_type,lesson_plan_name,title,description,date,due_at,start_at,end_at,time_zone_offset,is_home_fun,is_all_day,is_force,is_repeat,repeat
+VN HUB BETA N,A ClassUAT,OnlineClass,Plan test 01,Test 1,Description for test 1,2022-03-18,0,22:50,22:55,+7,false,false,true,false,
+VN HUB BETA N,A ClassUAT,OnlineClass,Plan test 01,Test 2,Description for test 2,2022-03-18,0,17:20,17:25,+7,false,false,true,true,weekly;1;Monday+Wednesday+Friday;after_time;0;2022-03-30 23:55
+VN HUB BETA N,A ClassUAT,Homework,Plan test 01,Homework,Description for Homework,2022-03-18,2022-03-19 20:00,,,+7,false,false,false,false,
