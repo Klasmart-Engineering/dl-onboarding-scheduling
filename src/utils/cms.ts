@@ -1,10 +1,13 @@
 import {
   AddScheduleRequest,
+  AddScheduleResponse,
   ScheduleRepeat,
 } from '../interfaces/cms/addSchedule';
 import { AdminService } from '../services';
 import { CMSService } from '../services/cms';
 import { RepeatEndType, ScheduleClassType, ScheduleRepeatType } from '../types';
+
+import { Uuid } from '.';
 
 export const parseWeeklyRepeat = (repeatString: string): ScheduleRepeat => {
   const repeatParams = repeatString.split(`;`);
@@ -123,3 +126,13 @@ export const parseRowsToRowAddScheduleRequestMappers = async (
   );
   return addScheduleRequests;
 };
+
+// Verify rowMapper.request is AddScheduleRequest, not Error
+export const verifyRowAddScheduleRequestMapper = (rowMapper: RowAddScheduleRequestMapper) => {
+  return (rowMapper.request as AddScheduleRequest).org_id ? true : false;
+}
+
+// If add schedule successful, the CMS will response the id of the schedule
+export const verifyAddScheduleSuccess = (response: AddScheduleResponse) => {
+  return (response.data && (response.data as unknown as { id: Uuid }).id);
+}

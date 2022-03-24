@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 
 import { ADD_SCHEDULE_INTERVAL, OUTPUT_DIR, UPLOAD_DIR } from '../../config';
 import {
@@ -26,6 +26,8 @@ import {
   parseRowsToRowAddScheduleRequestMappers,
   parseWeeklyRepeat,
   RowAddScheduleRequestMapper,
+  verifyAddScheduleSuccess,
+  verifyRowAddScheduleRequestMapper,
 } from '../../utils/cms';
 import { parseCsv, writeToCsv } from '../../utils/csv';
 import { AuthService } from '../auth';
@@ -159,21 +161,25 @@ export class CMSService extends BaseRestfulService {
       const rowMapper = rowMappers[startIndex];
       setTimeout(async () => {
         try {
-          // Verify rowMapper.request is AddScheduleRequest, not Error
-          if ((rowMapper.request as AddScheduleRequest).org_id) {
+          if (verifyRowAddScheduleRequestMapper(rowMapper)) {
             const result = await this.addSchedule(
               rowMapper.request as AddScheduleRequest
             );
-            if (result.data && (result.data as unknown as { id: Uuid }).id) {
-              rowMapper.row.result = `success`;
+            if (verifyAddScheduleSuccess(result)) {
+              rowMapper.row.result = `true`;
             } else {
-              rowMapper.row.result = result.label;
+              throw new Error(result.label);
             }
           } else {
             throw rowMapper.request as Error;
           }
         } catch (error) {
-          rowMapper.row.result = (error as Error).message;
+          rowMapper.row.result = `false`;
+          rowMapper.row.errors = [(error as Error).message];
+          const axiosError = error as AxiosError;
+          if (axiosError.isAxiosError && axiosError.response) {
+            rowMapper.row.errors.push(axiosError.response.data.label);
+          }
         }
         startIndex++;
         this.startAddSchedulesWithTimeout(startIndex, rowMappers, timeout);
@@ -183,7 +189,12 @@ export class CMSService extends BaseRestfulService {
       const resultFilePath = path.resolve(OUTPUT_DIR, `schedules.csv`);
       writeToCsv(
         resultFilePath,
-        rowMappers.map((mapper) => mapper.row)
+        rowMappers.map((mapper, index) => ({
+          row: index,
+          title: mapper.row.title,
+          result: mapper.row.result,
+          errors: mapper.row.errors || [],
+        }))
       );
       fs.unlinkSync(scheduleCsvFilePath);
     }
