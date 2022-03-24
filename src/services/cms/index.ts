@@ -53,7 +53,7 @@ export class CMSService extends BaseRestfulService {
   ): Promise<PostSchedulesTimeViewListResponse> {
     const { org_id, ...rest } = request;
     const result = await this._client.post<PostSchedulesTimeViewListResponse>(
-      `/v1/schedules_time_view/list`,
+      `/schedules_time_view/list`,
       rest,
       {
         ...config,
@@ -71,7 +71,7 @@ export class CMSService extends BaseRestfulService {
     config?: AxiosRequestConfig
   ): Promise<ContentsFoldersResponse> {
     const result = await this._client.get<PostSchedulesTimeViewListResponse>(
-      `/v1/contents_folders`,
+      `/contents_folders`,
       {
         ...config,
         params: {
@@ -119,7 +119,7 @@ export class CMSService extends BaseRestfulService {
     config?: AxiosRequestConfig
   ): Promise<GetContentResponse> {
     const result = await this._client.get<GetContentResponse>(
-      `/v1/contents/${request.content_id}`,
+      `/contents/${request.content_id}`,
       {
         ...config,
         params: {
@@ -137,7 +137,7 @@ export class CMSService extends BaseRestfulService {
   ): Promise<AddScheduleResponse> {
     const { org_id, ...rest } = request;
     const result = await this._client.post<AddScheduleResponse>(
-      `/v1/schedules`,
+      `/schedules`,
       rest,
       {
         ...config,
