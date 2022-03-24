@@ -100,10 +100,10 @@ export const parseRowsToRowAddScheduleRequestMappers = async (
             title: row.title,
             outcome_ids: [],
             start_at: row.start_at
-              ? Date.parse(`${row.date} ${row.start_at}`) / 1000
+              ? Date.parse(`${row.date} ${row.start_at} ${row.time_zone_offset}`) / 1000
               : 0,
             end_at: row.end_at
-              ? Date.parse(`${row.date} ${row.end_at}`) / 1000
+              ? Date.parse(`${row.date} ${row.end_at} ${row.time_zone_offset}`) / 1000
               : 0,
             subject_ids: lessonPlanDetail.subject,
             attachment: {
