@@ -8,6 +8,7 @@ import { stringify } from 'csv-stringify/sync';
 import { UPLOAD_DIR } from '../config';
 
 import { chunk } from './array';
+import { deleteDotfile } from './cron';
 import { onboarding } from './onboarding';
 
 /**
@@ -16,7 +17,11 @@ import { onboarding } from './onboarding';
  * - return result
  * - throw errors to express
  */
-export const processCsv = async (filePath: string, outputFile: string) => {
+export const processCsv = async (
+  filePath: string,
+  outputFile: string,
+  dotfilePath?: string
+) => {
   const maxEntitiesPerFile = process.env.MAX_ENTITIES_PER_FILE
     ? parseInt(process.env.MAX_ENTITIES_PER_FILE, 10)
     : 100;
@@ -25,10 +30,12 @@ export const processCsv = async (filePath: string, outputFile: string) => {
 
   if (rows === undefined) {
     // does nothing, already handled in `parseCsv`
+    deleteDotfile(dotfilePath);
     return;
   }
 
   if (!rows.length) {
+    deleteDotfile(dotfilePath);
     fs.unlinkSync(filePath);
     writeToCsv(outputFile, [{ message: 'File is empty.' }]);
     return;
@@ -50,10 +57,11 @@ export const processCsv = async (filePath: string, outputFile: string) => {
       outputFile,
       fileName,
       `${firstRow} - ${lastRow}`,
-      startAt,
+      startAt
     );
   }
 
+  deleteDotfile(dotfilePath);
   return rows;
 };
 

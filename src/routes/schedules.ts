@@ -1,9 +1,5 @@
-import fs from 'fs';
-import path from 'path';
-
 import express from 'express';
 
-import { UPLOAD_DIR } from '../config';
 import { checkAPISecret } from '../middlewares/checkAPISecret';
 import { fileIsRequired } from '../middlewares/fileIsRequired';
 import { orgIDRequired } from '../middlewares/orgIDRequired';
@@ -18,19 +14,9 @@ router.post(
   upload.single('file'),
   fileIsRequired,
   async (_, res) => {
-    try {
-      const cmsService = await CMSService.getInstance();
-      await cmsService.addSchedules();
-      res.json({
-        message: 'Upload successful.',
-      });
-    } catch (error) {
-      fs.unlinkSync(path.resolve(UPLOAD_DIR, `schedules.csv`));
-      res.json({
-        message: 'Add schedules failed!',
-        errors: [`Add schedules failed with error ${error}`],
-      });
-    }
+    res.json({
+      message: 'Upload successful.',
+    });
   }
 );
 

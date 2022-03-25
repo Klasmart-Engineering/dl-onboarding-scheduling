@@ -29,9 +29,11 @@ import {
   verifyAddScheduleSuccess,
   verifyRowAddScheduleRequestMapper,
 } from '../../utils/cms';
+import { deleteDotfile } from '../../utils/cron';
 import { parseCsv, writeToCsv } from '../../utils/csv';
 import { AuthService } from '../auth';
 import { BaseRestfulService } from '../baseRestfulService';
+
 export class CMSService extends BaseRestfulService {
   private static _instance: CMSService;
   private constructor(private _client: AxiosInstance) {
@@ -200,30 +202,43 @@ export class CMSService extends BaseRestfulService {
     }
   }
 
-  async addSchedules(): Promise<boolean> {
+  async addSchedules(dotfilePath?: string): Promise<boolean> {
     const scheduleCsvFilePath = path.resolve(UPLOAD_DIR, `schedules.csv`);
     const resultFilePath = path.resolve(OUTPUT_DIR, `schedules.csv`);
+    let result = true;
 
-    const rows = await parseCsv(scheduleCsvFilePath, resultFilePath, {
-      cast: (value, context) => {
-        if (context.column === 'repeat' && value !== '') {
-          return parseWeeklyRepeat(value);
-        }
-        return value;
-      },
-    });
+    try {
+      const rows = await parseCsv(scheduleCsvFilePath, resultFilePath, {
+        cast: (value, context) => {
+          if (context.column === 'repeat' && value !== '') {
+            return parseWeeklyRepeat(value);
+          }
+          return value;
+        },
+      });
 
-    if (rows === undefined) return false;
+      if (rows === undefined) {
+        deleteDotfile(dotfilePath);
+        return false;
+      }
 
-    if (!rows.length) {
-      fs.unlinkSync(scheduleCsvFilePath);
-      writeToCsv(resultFilePath, [{ message: 'File is empty.' }]);
-      return false;
+      if (!rows.length) {
+        fs.unlinkSync(scheduleCsvFilePath);
+        writeToCsv(resultFilePath, [{ message: 'File is empty.' }]);
+        result = false;
+      }
+
+      const rowMappers = await parseRowsToRowAddScheduleRequestMappers(rows);
+      this.startAddSchedulesWithTimeout(0, rowMappers, ADD_SCHEDULE_INTERVAL);
+    } catch (error) {
+      fs.unlinkSync(path.resolve(UPLOAD_DIR, `schedules.csv`));
+      writeToCsv(resultFilePath, [
+        { message: `Add schedules failed with error ${error}!` },
+      ]);
+      result = false;
     }
 
-    const rowMappers = await parseRowsToRowAddScheduleRequestMappers(rows);
-    this.startAddSchedulesWithTimeout(0, rowMappers, ADD_SCHEDULE_INTERVAL);
-
-    return true;
+    deleteDotfile(dotfilePath);
+    return result;
   }
 }
