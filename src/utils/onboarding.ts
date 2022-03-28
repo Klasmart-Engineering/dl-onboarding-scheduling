@@ -15,26 +15,42 @@ export async function onboarding(
   rows: string,
   startAt: number
 ) {
-  const result = await uploadCsv(filePath, fileName);
-
-  const endAt = Date.now();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let errors: any[] = [];
   const onboardingResult = [
     {
       rows: rows,
       result: 'true',
-      errors: [],
+      errors: errors,
       start_at: startAt,
-      end_at: endAt,
-      duration_in_second: endAt - startAt,
+      end_at: 0,
+      duration_in_second: 0,
     },
   ];
-  if (result.data.errors) {
+
+  try {
+    const result = await uploadCsv(filePath, fileName);
+
+    if (result.data.errors) {
+      onboardingResult[0].result = 'false';
+      errors = result.data.errors[0].details.map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (err: any) => err.message
+      );
+    }
+  } catch (error) {
     onboardingResult[0].result = 'false';
-    onboardingResult[0].errors = result.data.errors[0].details.map(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (err: any) => err.message
-    );
+    errors = [
+      {
+        message: `Uploading CSV to Admin Service failed with error ${error}`,
+      },
+    ];
   }
+  const endAt = Date.now();
+  onboardingResult[0].end_at = endAt;
+  onboardingResult[0].duration_in_second = endAt - startAt;
+  onboardingResult[0].errors = errors;
+
   writeToCsv(outputFile, onboardingResult);
   fs.unlinkSync(filePath); // delete file after uploading to Admin Service
 }
