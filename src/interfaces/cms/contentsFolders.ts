@@ -19,6 +19,35 @@ export interface ContentsFoldersRequest extends BaseRequest {
   page?: number;
 }
 
+export interface ContentsLessonPlansRequest extends BaseRequest {
+  lesson_plan_name: string;
+  group_names: string[];
+  age_ids?: string[];
+  authed_org_ids?: AuthedOrgIds;
+  author?: string;
+  category_ids?: ContentIds;
+  content_name?: string;
+  content_type?: number[];
+  data_source_id?: string;
+  dir_path?: string;
+  grade_ids?: string[];
+  join_user_id_list?: string[];
+  name?: number;
+  order_by?: OrderBy;
+  org?: string;
+  pager?: Pager;
+  parent_id?: string;
+  parent_path?: ParentPath;
+  program?: string[];
+  program_ids?: string[];
+  publish_status?: string[];
+  published_query_mode?: string;
+  source_type?: string;
+  sub_category_ids?: string[];
+  subject_ids?: string[];
+  visibility_settings?: string[];
+}
+
 export interface ContentPermission {
   allow_approve?: boolean;
   allow_delete?: boolean;
@@ -47,7 +76,38 @@ export interface ContentFolderData {
   update_at?: number;
 }
 
+export interface ContentsLessonPlansData {
+  group_name: string;
+  id: string;
+  name: string;
+}
+
 export interface ContentsFoldersResponse {
   list?: ContentFolderData[];
   total?: number;
+}
+
+export interface ContentsLessonPlansResponse {
+  data?: ContentsLessonPlansData[];
+  total?: number;
+}
+
+export interface AuthedOrgIds {
+  strings: string[];
+  valid: boolean;
+}
+
+export interface ContentIds {
+  strings: string[];
+  valid: boolean;
+}
+
+export interface Pager {
+  pageIndex: number;
+  pageSize: number;
+}
+
+export interface ParentPath {
+  strings: string[];
+  valid: boolean;
 }

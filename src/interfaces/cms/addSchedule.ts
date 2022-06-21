@@ -32,7 +32,6 @@ export interface ScheduleRepeat {
 }
 
 export interface AddScheduleRequest extends BaseRequest {
-  attachment_path: string;
   attachment?: { id: string; name: string };
   class_id: string;
   class_roster_student_ids: string[];
@@ -45,19 +44,18 @@ export interface AddScheduleRequest extends BaseRequest {
   is_force: boolean;
   is_home_fun: boolean;
   is_repeat: boolean;
+  is_review: boolean;
   lesson_plan_id: string;
   org_id: string;
   outcome_ids: string[];
   participants_student_ids: string[];
   participants_teacher_ids: string[];
   program_id: string;
-  subject_id: string;
   repeat: ScheduleRepeat;
   start_at: number;
   subject_ids: string[];
   time_zone_offset: number;
   title: string;
-  teacher_ids: string[];
 }
 
 export interface AddScheduleResponse {

@@ -12,6 +12,9 @@ import {
   ContentFolderData,
   ContentsFoldersRequest,
   ContentsFoldersResponse,
+  ContentsLessonPlansData,
+  ContentsLessonPlansRequest,
+  ContentsLessonPlansResponse,
 } from '../../interfaces/cms/contentsFolders';
 import {
   GetContentRequest,
@@ -94,22 +97,51 @@ export class CMSService extends BaseRestfulService {
     return result.data;
   }
 
+  async getLessonPlansForSchedule(
+    request: ContentsLessonPlansRequest,
+    config?: AxiosRequestConfig
+  ): Promise<ContentsLessonPlansResponse> {
+    const { org_id, ...rest } = request;
+
+    const result = await this._client.post<ContentsLessonPlansResponse>(
+      `/contents_lesson_plans?page=1&page_size=100&org_id=${org_id}`,
+      rest,
+      {
+        ...config,
+        params: {
+          ...request,
+          ...config?.params,
+        },
+      }
+    );
+
+    return result.data;
+  }
+
   async getLessonPlanByName(
     orgID: Uuid,
     lessonName: string
-  ): Promise<ContentFolderData> {
-    const result = await this.getLessonPlans({
+  ): Promise<ContentsLessonPlansData> {
+    const result = await this.getLessonPlansForSchedule({
       org_id: orgID,
-      content_name: lessonName,
-      publish_status: 'published',
+      lesson_plan_name: lessonName,
+      group_names: [
+        'Organization Content',
+        'Badanamu Content',
+        'More Featured Content',
+      ],
+      publish_status: ['published'],
     });
-    const lessonPlans = result.list || [];
+
+    const lessonPlans = result.data || [];
     if (lessonPlans.length > 1)
       throw new Error(
         `Unexpectedly found more than one lesson plan with the name ${lessonName}, unable to identify which one should be used`
       );
+
     if (lessonPlans.length === 0)
       throw new Error(`Lesson plan ${lessonName} not found`);
+
     return lessonPlans[0];
   }
 

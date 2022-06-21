@@ -34,6 +34,7 @@ export type RowAddScheduleRequestMapper = {
   row: Record<string, any>;
   request: AddScheduleRequest | Error;
 };
+
 export const parseRowsToRowAddScheduleRequestMappers = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rows: Record<string, any>[]
@@ -64,59 +65,57 @@ export const parseRowsToRowAddScheduleRequestMappers = async (
           organizationOfRow.id,
           row.lesson_plan_name
         );
-
         if (!lessonPlan.id) throw new Error('Not found lesson plan ID.');
 
         const lessonPlanDetail = await cmsService.getLessonPlanDetail({
           org_id: organizationOfRow.id,
           content_id: lessonPlan.id,
         });
-
-        if (!lessonPlanDetail) throw new Error('Not found lesson plan defail.');
+        if (!lessonPlanDetail)
+          throw new Error('Not found lesson plan details.');
 
         return {
           row,
           request: {
-            org_id: organizationOfRow.id,
-            attachment_path: '',
+            attachment: {
+              id: '',
+              name: '',
+            },
             class_id: classOfRow.id,
+            class_roster_student_ids: classOfRow.studentIds,
+            class_roster_teacher_ids: classOfRow.teacherIds,
             class_type: row.class_type as ScheduleClassType,
             description: row.description,
             due_at: row.due_at ? Date.parse(row.due_at) / 1000 : 0,
+            end_at: row.end_at
+              ? Date.parse(
+                  `${row.date} ${row.end_at} ${row.time_zone_offset}`
+                ) / 1000
+              : 0,
             is_all_day: row.is_all_day === 'true',
             is_force: row.is_force === 'true',
+            is_home_fun: row.is_home_fun === 'true',
             is_repeat: row.is_repeat === 'true',
+            is_review: false,
             lesson_plan_id: lessonPlan.id,
+            org_id: organizationOfRow.id,
+            outcome_ids: [],
+            participants_student_ids: [],
+            participants_teacher_ids: [],
             program_id: lessonPlanDetail.program,
             repeat:
               row.is_repeat === 'true' && row.repeat
                 ? (row.repeat as ScheduleRepeat)
                 : {},
-            subject_id:
-              lessonPlanDetail.subject.length > 0
-                ? lessonPlanDetail.subject[0]
-                : '',
-            teacher_ids: [...classOfRow.teacherIds, ...classOfRow.studentIds],
-            title: row.title,
-            outcome_ids: [],
             start_at: row.start_at
-              ? Date.parse(`${row.date} ${row.start_at} ${row.time_zone_offset}`) / 1000
-              : 0,
-            end_at: row.end_at
-              ? Date.parse(`${row.date} ${row.end_at} ${row.time_zone_offset}`) / 1000
+              ? Date.parse(
+                  `${row.date} ${row.start_at} ${row.time_zone_offset}`
+                ) / 1000
               : 0,
             subject_ids: lessonPlanDetail.subject,
-            attachment: {
-              id: '',
-              name: '',
-            },
             time_zone_offset:
               parseInt(row.time_zone_offset.replace(/\D/g, '')) * 60 * 60,
-            is_home_fun: row.is_home_fun === 'true',
-            class_roster_student_ids: classOfRow.studentIds,
-            class_roster_teacher_ids: classOfRow.teacherIds,
-            participants_student_ids: [],
-            participants_teacher_ids: [],
+            title: row.title,
           },
         };
       } catch (error) {
@@ -124,15 +123,18 @@ export const parseRowsToRowAddScheduleRequestMappers = async (
       }
     })
   );
+
   return addScheduleRequests;
 };
 
 // Verify rowMapper.request is AddScheduleRequest, not Error
-export const verifyRowAddScheduleRequestMapper = (rowMapper: RowAddScheduleRequestMapper) => {
+export const verifyRowAddScheduleRequestMapper = (
+  rowMapper: RowAddScheduleRequestMapper
+) => {
   return (rowMapper.request as AddScheduleRequest).org_id ? true : false;
-}
+};
 
 // If add schedule successful, the CMS will response the id of the schedule
 export const verifyAddScheduleSuccess = (response: AddScheduleResponse) => {
-  return (response.data && (response.data as unknown as { id: Uuid }).id);
-}
+  return response.data && (response.data as unknown as { id: Uuid }).id;
+};
